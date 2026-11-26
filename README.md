@@ -1,60 +1,56 @@
-# KrishiMitra — Dual-Model Rice Leaf Analysis
+# KrishiMitra — Best Centralized Model Edition
 
-A Streamlit application using the same clean green-and-white KrishiMitra website design: branded header, split hero section, feature cards, image upload, and simple Home / Detect Disease / Disease Guide / About navigation.
+A farmer-facing Streamlit application using the same clean green-and-white KrishiMitra website design: leaf brand row, split hero section, feature cards, ten supported class thumbnails, and simple Home / Detect Disease / Disease Guide / About navigation.
 
-## Included centralized models
+## Primary model selected
 
-- **Dataset 1:** `models/dataset1_centralized_best.pth`
-- **Dataset 2:** `models/dataset2_centralized_best.pth`
+- **Architecture:** MobileNetV3-Small
+- **Dataset:** Dataset 2 — `paddy-disease-classification`
+- **Checkpoint:** `models/centralized_best.pth`
+- **Classes:** 10, stored in `models/class_names.json` in the exact training order
+- **Input:** 224 × 224 RGB, ImageNet mean and standard deviation
 
-Each checkpoint retains its own class list and class order. Their scores are not averaged or treated as directly comparable probabilities.
+This is the recommended public prediction model because the supplied FedRice-XAI deployment configuration identifies this centralized checkpoint as the primary model and reports it as the strongest held-out candidate in that deployment snapshot. The Dataset 1 model is not blended into this prediction path because its label definitions differ.
 
-## Research methods integrated into prediction
+## Evaluation metric discrepancy — read before publishing results
 
-- **Grad-CAM:** generates a heatmap for each model's selected class.
-- **MC Dropout:** uses repeated stochastic passes when dropout layers are present. The supplied MobileNetV3-Small architecture includes a dropout layer.
-- **Predictive entropy:** normalized measure of how spread the class-score distribution is.
-- **Top-class variation:** standard deviation of the selected class score across MC-dropout passes.
+The supplied project files contain conflicting evaluation values for this same Dataset 2 checkpoint:
+
+- FedRice-XAI deployment `config.json`: **96.41% accuracy / 96.22% Macro-F1**.
+- A separate supplied KrishiMitra project snapshot: **95.97% accuracy / 95.69% Macro-F1**.
+
+The checkpoint SHA-256 identity matches between the deployment archive and the dual-model archive, but the reported metrics differ. This package therefore discloses the discrepancy rather than claiming one definitive score. Re-run evaluation against the exact held-out test split and save the classification report before presenting a final research metric. Neither score guarantees accuracy on real field photographs.
+
+## Research methods included in prediction
+
+- **Grad-CAM:** generates a class-specific heatmap from the final MobileNetV3 feature block. It explains influential regions; it is not lesion segmentation or proof of correct reasoning.
+- **MC Dropout:** performs 30 stochastic forward passes with the classifier dropout layer enabled while BatchNorm stays in evaluation mode.
+- **Predictive entropy:** normalized measure of how spread the mean class-score distribution is.
 - **Mutual information:** exploratory estimate of uncertainty across stochastic passes.
-- **OOD research indicators:** maximum softmax probability and energy score are shown for each model. A transparent review warning is raised for low maximum score or high predictive entropy.
+- **Top-class variation:** standard deviation of the selected class score across MC passes.
+- **OOD indicators:** Maximum Softmax Probability and raw energy score are displayed.
 
 ### OOD and uncertainty limitations
 
-The project record supplied with this application states that quantitative PlantVillage OOD evaluation is pending and no validated OOD threshold is available. Therefore:
-
-- OOD scores are **research screening indicators**, not a validated rice/non-rice detector.
-- The review warning uses provisional heuristic cut-offs (maximum softmax below 0.50 or normalized entropy at/above 0.65). These values are not empirically calibrated and must not be presented as research performance.
-- Energy score is shown as a raw diagnostic; no threshold is applied.
-- MC Dropout variation, predictive entropy and mutual information are exploratory and are not calibrated probabilities of error.
-- A “no warning” result does not prove that an image is in-distribution or correctly classified.
-
-## Prediction interpretation
-
-Each model shows its own predicted class, plain-language disease description, top-five alternatives, score margin, reliability indicators and Grad-CAM. If models disagree, the app explicitly recommends verification rather than choosing the larger score. Different dataset class definitions are preserved.
+The supplied research record does not provide a validated rice-versus-non-rice OOD threshold or completed external OOD calibration. The app uses a clearly labelled provisional review flag (maximum softmax below 0.50 or normalized entropy at/above 0.65). These cut-offs are heuristic and are not empirically calibrated. They must not be presented as a validated OOD detector or deployment rejection guarantee. MC Dropout and entropy outputs are exploratory and are not calibrated probabilities of error.
 
 ## Run locally
 
-Recommended: Python 3.10 or 3.11.
+Recommended: Python 3.11.
 
 ```bash
+python -m venv .venv
+# Windows: .venv\\Scripts\\activate
+# macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
+python verify_model.py
 streamlit run app.py
 ```
 
-## Deploy on Streamlit Community Cloud
+## GitHub / Streamlit deployment
 
-Upload the complete project contents to GitHub. Keep `app.py`, `model.py`, `requirements.txt`, `models/` and `assets/` at the repository root. Set the app entry point to `app.py`.
-
-## Verification
-
-Run:
-
-```bash
-python verify_models.py
-```
-
-The script checks both checkpoint files, their class mappings and expected ten-class model outputs.
+Upload the complete folder contents to GitHub, preserving `app.py`, `model.py`, `requirements.txt`, `models/` and `assets/`. Set the Streamlit entry point to `app.py`.
 
 ## Responsible use
 
-This is a research decision-support prototype, not a certified plant diagnostic service. It does not provide pesticide recommendations. Confirm important crop decisions with an agriculture extension officer or Krishi Vigyan Kendra.
+KrishiMitra is a research decision-support prototype, not a certified plant diagnostic service. It does not provide pesticide recommendations. Confirm important crop decisions with an agriculture extension officer or Krishi Vigyan Kendra.
