@@ -1,37 +1,60 @@
-# KrishiMitra — Rice Leaf Disease Classification
+# KrishiMitra — Dual-Model Rice Leaf Analysis
 
-A simplified Streamlit application for rice-leaf image classification. The public interface contains Home, Detect Disease, Disease Guide and About only. The research workspace and research dashboards have been removed.
+A Streamlit application using the same clean green-and-white KrishiMitra website design: branded header, split hero section, feature cards, image upload, and simple Home / Detect Disease / Disease Guide / About navigation.
 
-## Features
-- Rice-leaf image upload and MobileNetV3-Small inference
-- Ten supported classes with plain-language descriptions and field-check guidance
-- Top-five class ranking with an explanation of the model scores and the gap between the first two classes
-- Grad-CAM heatmap overlay for the selected class
-- Clear limitations and advice to confirm important decisions with an agricultural expert
+## Included centralized models
+
+- **Dataset 1:** `models/dataset1_centralized_best.pth`
+- **Dataset 2:** `models/dataset2_centralized_best.pth`
+
+Each checkpoint retains its own class list and class order. Their scores are not averaged or treated as directly comparable probabilities.
+
+## Research methods integrated into prediction
+
+- **Grad-CAM:** generates a heatmap for each model's selected class.
+- **MC Dropout:** uses repeated stochastic passes when dropout layers are present. The supplied MobileNetV3-Small architecture includes a dropout layer.
+- **Predictive entropy:** normalized measure of how spread the class-score distribution is.
+- **Top-class variation:** standard deviation of the selected class score across MC-dropout passes.
+- **Mutual information:** exploratory estimate of uncertainty across stochastic passes.
+- **OOD research indicators:** maximum softmax probability and energy score are shown for each model. A transparent review warning is raised for low maximum score or high predictive entropy.
+
+### OOD and uncertainty limitations
+
+The project record supplied with this application states that quantitative PlantVillage OOD evaluation is pending and no validated OOD threshold is available. Therefore:
+
+- OOD scores are **research screening indicators**, not a validated rice/non-rice detector.
+- The review warning uses provisional heuristic cut-offs (maximum softmax below 0.50 or normalized entropy at/above 0.65). These values are not empirically calibrated and must not be presented as research performance.
+- Energy score is shown as a raw diagnostic; no threshold is applied.
+- MC Dropout variation, predictive entropy and mutual information are exploratory and are not calibrated probabilities of error.
+- A “no warning” result does not prove that an image is in-distribution or correctly classified.
+
+## Prediction interpretation
+
+Each model shows its own predicted class, plain-language disease description, top-five alternatives, score margin, reliability indicators and Grad-CAM. If models disagree, the app explicitly recommends verification rather than choosing the larger score. Different dataset class definitions are preserved.
 
 ## Run locally
-Use Python 3.11 with the pinned packages.
+
+Recommended: Python 3.10 or 3.11.
 
 ```bash
-python -m venv .venv
-# Windows: .venv\\Scripts\\activate
-# macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
 streamlit run app.py
 ```
 
-## Required files
-Keep these files in the supplied locations:
-- `models/centralized_best.pth`
-- `models/config.json`
-- `models/class_names.json`
-- All images directly in `assets/`, including `rice_field_hero.jpg` and the disease thumbnails.
+## Deploy on Streamlit Community Cloud
 
-Do not change the order in `models/class_names.json` unless it exactly matches the label-to-index mapping used when the checkpoint was trained.
+Upload the complete project contents to GitHub. Keep `app.py`, `model.py`, `requirements.txt`, `models/` and `assets/` at the repository root. Set the app entry point to `app.py`.
 
-## Important model limitation
-The application loads the existing centralized checkpoint; it does not retrain or repair its learned weights. A wrong class prediction cannot be corrected by changing the page text. If the model repeatedly confuses bacterial diseases with Blast, verify the original training label-to-index mapping and evaluate this exact checkpoint on correctly labelled, held-out images from the same dataset. If it fails that test, retrain or replace the checkpoint using the verified mapping and matching preprocessing.
+## Verification
 
-The displayed scores are softmax scores, not calibrated probabilities. The difference between the top two scores is shown as a simple ambiguity indicator, not a validated uncertainty threshold. Grad-CAM highlights regions that influenced the selected class score; it is not lesion segmentation or proof of disease.
+Run:
 
-This is a research decision-support prototype, not a certified plant diagnostic service. It does not reliably reject every non-rice image and should not be used alone to choose pesticides or treatments. Confirm important crop decisions with an agriculture officer or Krishi Vigyan Kendra.
+```bash
+python verify_models.py
+```
+
+The script checks both checkpoint files, their class mappings and expected ten-class model outputs.
+
+## Responsible use
+
+This is a research decision-support prototype, not a certified plant diagnostic service. It does not provide pesticide recommendations. Confirm important crop decisions with an agriculture extension officer or Krishi Vigyan Kendra.
