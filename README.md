@@ -1,26 +1,15 @@
-# FedRice-XAI Deployment
+# FedRice-XAI — Rice Leaf Analysis Web App
 
-This package contains the deployment files for the FedRice-XAI rice-leaf classification demo.
+A Streamlit research prototype with a single centralized MobileNetV3-Small prediction model, user-friendly result wording, MC Dropout variability, and Grad-CAM visualization.
 
-## Recommended prediction model
-
-The app defaults to `models/centralized_best.pth`, the centralized MobileNetV3-Small model trained on Dataset 2. The supplied research notebook reports held-out test accuracy **96.41%** and Macro-F1 **96.22%** for this checkpoint. These are experimental results on the notebook's test split, not a guarantee for arbitrary field images.
-
-The app also includes the five personalized client checkpoints. Select **Personalized federated model** in the sidebar to inspect a client-specific model. These checkpoints are retained for research comparison; they are not assumed to outperform the centralized model.
-
-## Files
-
-- `app.py` — Streamlit interface, prediction, Grad-CAM, and MC Dropout variability
-- `model.py` — exact centralized and improved personalized model definitions
+## Included
+- `app.py` — single-model user interface and inference workflow
+- `model.py` — model definition matching the supplied centralized checkpoint
 - `models/centralized_best.pth` — selected centralized Dataset 2 checkpoint
-- `models/client_1.pth` ... `models/client_5.pth` — personalized client checkpoints
-- `models/class_names.json` — Dataset 2 class order
-- `models/config.json` — model and preprocessing configuration
-- `requirements.txt` — Python dependencies
-- `runtime.txt` — Python runtime hint
+- `models/class_names.json` — exact class order
+- `models/config.json` — input size, normalization and reported metrics
 
 ## Run locally
-
 ```bash
 python -m venv .venv
 # Windows: .venv\\Scripts\\activate
@@ -29,18 +18,13 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-## Deploy to Streamlit Community Cloud
+## Streamlit Community Cloud
+Upload the contents of this folder to the GitHub repository root. Keep the `models` folder. Set the main file to `app.py` and select Python 3.11.
 
-1. Create a new GitHub repository.
-2. Upload the contents of this folder, preserving the `models/` directory.
-3. In Streamlit Community Cloud, create an app from that repository.
-4. Set the main file path to `app.py`.
-
-## Important limitations
-
-- The centralized model is the default because it has the strongest reported held-out test metrics among the models listed in the notebook's final comparison.
-- Prediction probabilities are not calibrated diagnostic certainty.
-- MC Dropout standard deviation is a variability indicator, not a validated medical/agricultural risk score.
+## Important scientific limitations
+- The app intentionally exposes one prediction model; client checkpoints are not offered to public users.
+- The app does **not** claim validated rice-vs-non-rice or OOD rejection. The research notebook's PlantVillage OOD evaluation was performed on personalized client models, not this centralized deployment checkpoint. A centralized OOD evaluation and validation-based threshold calibration are required before adding a non-rice rejection claim.
+- Softmax probability is not calibrated diagnostic certainty. MC Dropout variability is an indicator, not a validated risk score.
 - Grad-CAM is an explanation aid, not proof of disease.
-- Validated open-set/OOD rejection is not implemented in this deployment.
-- Confirm important crop-treatment decisions with a qualified agricultural expert.
+- Reported 96.41% accuracy and 96.22% Macro-F1 are notebook results on the held-out Dataset 2 test split, not a guarantee on real-world images.
+- This research prototype must not be used alone to select crop treatments.
