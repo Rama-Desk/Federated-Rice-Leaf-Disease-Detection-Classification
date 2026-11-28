@@ -1,0 +1,32 @@
+{
+  "project": "KrishiMitra / FedRice-XAI",
+  "primary_prediction_model": "centralized_best.pth",
+  "architecture": "MobileNetV3-Small",
+  "primary_dataset": "Dataset 2 - paddy-disease-classification",
+  "num_classes": 10,
+  "input_size": [
+    224,
+    224
+  ],
+  "normalization": {
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ]
+  },
+  "evaluation_note": "Supplied project snapshots conflict: deployment config reports 96.41% accuracy / 96.22% Macro-F1; another snapshot reports 95.97% / 95.69% for the same checkpoint. Re-evaluate exact held-out split before asserting final metrics.",
+  "consensus_models": [
+    "client_1.pth",
+    "client_2.pth",
+    "client_3.pth",
+    "client_4.pth",
+    "client_5.pth"
+  ],
+  "consensus_policy": "Centralized model determines the single displayed class; five personalized client models provide independent agreement indicators only."
+}
