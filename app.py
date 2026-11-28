@@ -363,7 +363,7 @@ def render_about():
     st.write('KrishiMitra is a research-based rice-leaf image classification prototype. Its public prediction flow uses the centralized MobileNetV3-Small checkpoint trained on Dataset 2.')
     st.markdown('### Selected model')
     st.write('**Architecture:** MobileNetV3-Small')
-    st.write('**Dataset:** Dataset 2 — paddy-disease-classification')
+    st.write('**Dataset:**paddy-disease-classification')
     st.write('**Input:** 224 × 224 RGB image with ImageNet normalization')
     st.write('**Supported classes:** ' + ', '.join(nice_name(x) for x in CLASS_NAMES))
     st.write('**Research cross-check:** Five ImprovedPersonalizedFedRice client checkpoints, each evaluated with its corresponding private head.')
